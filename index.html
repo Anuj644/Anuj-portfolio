@@ -16,7 +16,7 @@
 
 <nav>
   <div class="wrap">
-    <a href="#top" class="logo">Anuj Abhyankar</a>
+    <a href="#top" class="logo">Anuj Abhyankar<span>.</span></a>
     <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">Menu</button>
     <ul id="menu">
       <li><a href="#about">About</a></li>
@@ -83,14 +83,13 @@
 <section id="skills">
   <div class="wrap">
     <h2 class="sec-title">Skills</h2>
-    <p class="sec-sub">The tools I use to build applications and work with data.</p>
-    <div class="skill-grid">
-      <div class="skill-box spot"><h3>Languages</h3><div class="chips"><span class="chip">Python</span><span class="chip">Java</span><span class="chip">C</span><span class="chip">C++</span><span class="chip">JavaScript</span><span class="chip">TypeScript</span></div></div>
-      <div class="skill-box spot"><h3>Full stack</h3><div class="chips"><span class="chip">React</span><span class="chip">Node.js</span><span class="chip">NestJS</span><span class="chip">REST APIs</span><span class="chip">HTML/CSS</span><span class="chip">Bootstrap</span></div></div>
-      <div class="skill-box spot"><h3>Databases</h3><div class="chips"><span class="chip">MySQL</span><span class="chip">MongoDB</span><span class="chip">SQLite</span></div></div>
-      <div class="skill-box spot"><h3>Machine learning and data</h3><div class="chips"><span class="chip">Pandas</span><span class="chip">NumPy</span><span class="chip">scikit-learn</span><span class="chip">Matplotlib</span><span class="chip">Tableau</span><span class="chip">Power BI</span></div></div>
-      <div class="skill-box spot"><h3>Generative AI</h3><div class="chips"><span class="chip">OpenAI</span><span class="chip">LangChain</span><span class="chip">FAISS</span><span class="chip">Streamlit</span></div></div>
-      <div class="skill-box spot"><h3>Tools</h3><div class="chips"><span class="chip">Git</span><span class="chip">GitHub</span><span class="chip">Excel</span></div></div>
+    <p class="sec-sub">The tools I use most to build applications and work with data.</p>
+    <div class="core-grid" id="coreSkills"></div>
+    <button class="more-btn" id="moreBtn" aria-expanded="false" aria-controls="moreSkills"><span id="moreLabel">More skills</span><span class="arrow"></span></button>
+    <div class="more" id="moreSkills">
+      <div class="more-inner" id="moreInner" inert>
+        <div class="more-groups" id="moreGroups"></div>
+      </div>
     </div>
   </div>
 </section>
