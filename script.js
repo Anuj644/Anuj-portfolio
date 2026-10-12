@@ -79,7 +79,7 @@ const countObserver = new IntersectionObserver(entries => {
 document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
 
 if (!reduce) {
-  const groups = ['.sec-title', '.sec-sub', '.about > div', '.skill-box', '.job', '.proj', '.two > div', '.contact .wrap'];
+  const groups = ['.sec-title', '.sec-sub', '.about > div', '.skill-box', '.job', '.proj', '.edu-card', '.cert', '.contact .wrap'];
   const revealObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
