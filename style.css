@@ -157,3 +157,19 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:30px 0 40px
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;scroll-behavior:auto!important;transition:none!important}
 }
+
+.edu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:20px}
+.edu-card{display:flex;flex-direction:column;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:32px 28px 28px;transition:border-color .25s,transform .25s}
+.edu-card::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--violet),var(--cyan))}
+.edu-card:hover{border-color:var(--violet);transform:translateY(-4px)}
+.edu-card .when{color:var(--cyan);font-size:.9rem;font-weight:500}
+.edu-card h3{font-size:1.35rem;margin:8px 0 10px}
+.edu-card .school{color:var(--muted);margin-bottom:22px}
+.pill{align-self:flex-start;margin-top:auto;padding:5px 14px;border-radius:999px;background:rgba(68,217,242,.1);border:1px solid rgba(68,217,242,.3);font-size:.88rem}
+
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:18px}
+.cert{display:flex;flex-direction:column;gap:14px;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:24px;transition:border-color .25s,transform .25s}
+.cert:hover{border-color:var(--violet);transform:translateY(-4px)}
+.cert h3{font-size:1.1rem;line-height:1.3}
+.badge{align-self:flex-start;padding:4px 12px;border-radius:999px;background:rgba(139,107,255,.14);border:1px solid rgba(139,107,255,.35);font-size:.82rem}
+.badge.alt{background:rgba(68,217,242,.1);border-color:rgba(68,217,242,.3)}
