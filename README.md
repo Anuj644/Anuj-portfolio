@@ -2,7 +2,7 @@
 
 Personal portfolio website showcasing my projects, experience, skills and education.
 
-**Live site:** https://Anuj644.github.io
+**Live site:** https://anuj644.github.io/Anuj-portfolio/
 
 ## About me
 
