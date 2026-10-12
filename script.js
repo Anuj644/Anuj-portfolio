@@ -1,3 +1,6 @@
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!reduce) document.documentElement.classList.add('js');
+
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 const menu = document.getElementById('menu');
@@ -6,10 +9,98 @@ menu.addEventListener('click', e => {
   if (e.target.tagName === 'A') menu.classList.remove('open');
 });
 
+const progress = document.getElementById('progress');
+function updateProgress() {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+}
+addEventListener('scroll', updateProgress, { passive: true });
+updateProgress();
+
+const track = document.getElementById('track');
+track.innerHTML += track.innerHTML;
+
+document.addEventListener('mousemove', e => {
+  const card = e.target.closest ? e.target.closest('.spot') : null;
+  if (!card) return;
+  const r = card.getBoundingClientRect();
+  card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+  card.style.setProperty('--my', `${e.clientY - r.top}px`);
+});
+
+const links = document.querySelectorAll('nav ul a');
+const sectionObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id));
+    }
+  });
+}, { rootMargin: '-45% 0px -50% 0px' });
+document.querySelectorAll('section[id]').forEach(s => sectionObserver.observe(s));
+
+const roles = ['Full Stack Developer', 'Data Engineer', 'AI and ML builder'];
+const roleEl = document.getElementById('role');
+if (reduce) {
+  roleEl.textContent = roles.join(', ');
+} else {
+  let ri = 0, ci = 0, deleting = false;
+  (function type() {
+    const word = roles[ri];
+    ci += deleting ? -1 : 1;
+    roleEl.textContent = word.slice(0, ci);
+    let delay = deleting ? 45 : 90;
+    if (!deleting && ci === word.length) { deleting = true; delay = 1600; }
+    else if (deleting && ci === 0) { deleting = false; ri = (ri + 1) % roles.length; delay = 350; }
+    setTimeout(type, delay);
+  })();
+}
+
+function countUp(el) {
+  const target = parseFloat(el.dataset.count);
+  const dec = parseInt(el.dataset.dec, 10);
+  if (reduce) { el.textContent = target.toFixed(dec); return; }
+  const start = performance.now();
+  const dur = 1300;
+  (function step(now) {
+    const t = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = (target * eased).toFixed(dec);
+    if (t < 1) requestAnimationFrame(step);
+  })(start);
+}
+const countObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      countUp(entry.target);
+      countObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.6 });
+document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
+
+if (!reduce) {
+  const groups = ['.sec-title', '.sec-sub', '.about > div', '.skill-box', '.job', '.proj', '.two > div', '.contact .wrap'];
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      el.classList.add('in');
+      revealObserver.unobserve(el);
+      setTimeout(() => el.classList.remove('reveal', 'in'), 1400);
+    });
+  }, { threshold: 0.12 });
+  groups.forEach(sel => {
+    document.querySelectorAll(sel).forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.setProperty('--d', `${(i % 3) * 0.08}s`);
+      revealObserver.observe(el);
+    });
+  });
+}
+
 (function () {
   const canvas = document.getElementById('net');
   const ctx = canvas.getContext('2d');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let w, h, points = [];
   const mouse = { x: -999, y: -999 };
 
