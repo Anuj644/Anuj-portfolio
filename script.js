@@ -3,6 +3,24 @@ if (!reduce) document.documentElement.classList.add('js');
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(theme, animate) {
+  const root = document.documentElement;
+  if (animate) {
+    root.classList.add('theme-anim');
+    setTimeout(() => root.classList.remove('theme-anim'), 450);
+  }
+  if (theme === 'dark') root.setAttribute('data-theme', 'dark');
+  else root.removeAttribute('data-theme');
+  themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  window.dispatchEvent(new Event('themechange'));
+}
+themeBtn.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next, true);
+});
+applyTheme('light', false);
+
 const menu = document.getElementById('menu');
 document.getElementById('menuBtn').addEventListener('click', () => menu.classList.toggle('open'));
 menu.addEventListener('click', e => {
@@ -219,64 +237,127 @@ if (!reduce) {
   const canvas = document.getElementById('net');
   const ctx = canvas.getContext('2d');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const gap = 36;
-  const mouse = { x: -999, y: -999, tx: -999, ty: -999 };
-  let w = 0, h = 0, cols = 0, rows = 0, offX = 0, offY = 0;
+  const cell = 18;
+  const levels = [-2.4, -1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8, 2.4];
+  const table = [null, [3, 2], [2, 1], [3, 1], [0, 1], [0, 1, 3, 2], [0, 2], [0, 3], [0, 3], [0, 2], [0, 3, 1, 2], [0, 1], [3, 1], [2, 1], [3, 2], null];
+  const mouse = { x: -999, y: -999, tx: -999, ty: -999, power: 0, target: 0 };
+  let w = 0, h = 0, cols = 0, rows = 0, field = new Float32Array(0);
+  let color = '71,133,153';
+  let running = false;
+  let ex = 0, ey = 0;
 
-  function resize() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    w = canvas.width = rect.width;
-    h = canvas.height = rect.height;
-    cols = Math.ceil(w / gap) + 1;
-    rows = Math.ceil(h / gap) + 1;
-    offX = (w - (cols - 1) * gap) / 2;
-    offY = (h - (rows - 1) * gap) / 2;
-    if (reduce) draw(0);
+  function readColor() {
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--contour').trim();
+    if (value) color = value;
+  }
+
+  function sample(x, y, t) {
+    const dx = x - mouse.x;
+    const dy = y - mouse.y;
+    const bump = mouse.power * 2.2 * Math.exp(-(dx * dx + dy * dy) / (2 * 150 * 150));
+    return Math.sin(x * 0.0075 + t * 0.00025)
+      + Math.sin(y * 0.01 - t * 0.0002)
+      + Math.sin((x + y) * 0.0055 + t * 0.00018)
+      + 0.8 * Math.sin(Math.hypot(x - w * 0.7, y - h * 0.4) * 0.012 - t * 0.0003)
+      + bump;
+  }
+
+  function edgePoint(e, x0, y0, a, b, c, d, l) {
+    if (e === 0) { ex = x0 + cell * (l - a) / (b - a); ey = y0; }
+    else if (e === 1) { ex = x0 + cell; ey = y0 + cell * (l - b) / (c - b); }
+    else if (e === 2) { ex = x0 + cell * (l - d) / (c - d); ey = y0 + cell; }
+    else { ex = x0; ey = y0 + cell * (l - a) / (d - a); }
   }
 
   function draw(time) {
     ctx.clearRect(0, 0, w, h);
-    mouse.x += (mouse.tx - mouse.x) * 0.18;
-    mouse.y += (mouse.ty - mouse.y) * 0.18;
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        let x = offX + i * gap;
-        let y = offY + j * gap;
-        const dx = x - mouse.x;
-        const dy = y - mouse.y;
-        const d = Math.hypot(dx, dy) || 1;
-        let near = d < 160 ? 1 - d / 160 : 0;
-        near = near * near * (3 - 2 * near);
-        x += (dx / d) * near * 14;
-        y += (dy / d) * near * 14;
-        const wave = reduce ? 0 : Math.max(0, Math.sin((i + j) * 0.3 - time * 0.001));
-        const k = Math.max(near, Math.pow(wave, 8) * 0.55);
-        const r = 1.1 + k * 3.4;
-        const red = Math.round(162 + (35 - 162) * k);
-        const green = Math.round(174 + (181 - 174) * k);
-        const blue = Math.round(187 + (211 - 187) * k);
-        ctx.fillStyle = `rgba(${red},${green},${blue},${0.22 + k * 0.75})`;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+    if (mouse.tx !== -999) {
+      mouse.x += (mouse.tx - mouse.x) * 0.12;
+      mouse.y += (mouse.ty - mouse.y) * 0.12;
+    }
+    mouse.power += (mouse.target - mouse.power) * 0.08;
+    const stride = cols + 1;
+    for (let j = 0; j <= rows; j++) {
+      for (let i = 0; i <= cols; i++) {
+        field[j * stride + i] = sample(i * cell, j * cell, time);
       }
     }
-    if (!reduce) requestAnimationFrame(draw);
+    levels.forEach((l, index) => {
+      const major = index % 3 === 1;
+      ctx.beginPath();
+      for (let j = 0; j < rows; j++) {
+        for (let i = 0; i < cols; i++) {
+          const a = field[j * stride + i];
+          const b = field[j * stride + i + 1];
+          const c = field[(j + 1) * stride + i + 1];
+          const d = field[(j + 1) * stride + i];
+          const key = (a > l ? 8 : 0) | (b > l ? 4 : 0) | (c > l ? 2 : 0) | (d > l ? 1 : 0);
+          const segments = table[key];
+          if (!segments) continue;
+          const x0 = i * cell;
+          const y0 = j * cell;
+          for (let k = 0; k < segments.length; k += 2) {
+            edgePoint(segments[k], x0, y0, a, b, c, d, l);
+            ctx.moveTo(ex, ey);
+            edgePoint(segments[k + 1], x0, y0, a, b, c, d, l);
+            ctx.lineTo(ex, ey);
+          }
+        }
+      }
+      ctx.lineWidth = major ? 1.4 : 1;
+      ctx.strokeStyle = `rgba(${color},${major ? 0.42 : 0.2})`;
+      ctx.stroke();
+    });
+  }
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = rect.width;
+    h = rect.height;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.ceil(w / cell);
+    rows = Math.ceil(h / cell);
+    field = new Float32Array((cols + 1) * (rows + 1));
+    if (!running) draw(0);
+  }
+
+  function loop(time) {
+    draw(time);
+    if (running) requestAnimationFrame(loop);
+  }
+
+  function start() {
+    if (running || reduce) return;
+    running = true;
+    requestAnimationFrame(loop);
   }
 
   canvas.parentElement.addEventListener('mousemove', e => {
     const rect = canvas.getBoundingClientRect();
-    if (mouse.tx === -999) {
+    if (mouse.target === 0) {
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
     }
     mouse.tx = e.clientX - rect.left;
     mouse.ty = e.clientY - rect.top;
+    mouse.target = 1;
   });
   canvas.parentElement.addEventListener('mouseleave', () => {
-    mouse.x = mouse.y = mouse.tx = mouse.ty = -999;
+    mouse.target = 0;
   });
-  addEventListener('resize', resize);
+  window.addEventListener('resize', resize);
+  window.addEventListener('themechange', () => {
+    readColor();
+    if (!running) draw(0);
+  });
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) start();
+    else running = false;
+  }).observe(canvas.parentElement);
+
+  readColor();
   resize();
-  if (!reduce) requestAnimationFrame(draw);
 })();
