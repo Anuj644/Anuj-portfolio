@@ -110,7 +110,7 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 nav ul{display:flex;gap:6px;list-style:none}
 nav ul a{display:block;color:var(--muted);font-size:.95rem;padding:8px 14px;border-radius:999px;transition:color .2s,background .2s}
 nav ul a:hover{color:var(--text)}
-nav ul a.active{color:var(--text);background:var(--soft-tint)}
+nav ul a.active{color:var(--accent-ink);background:var(--accent-tint);box-shadow:inset 0 0 0 1px var(--accent-tint-line)}
 .theme-btn{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--text);cursor:pointer;transition:border-color .2s,transform .2s}
 .theme-btn:hover{border-color:var(--accent);transform:rotate(14deg)}
 .theme-btn svg{width:18px;height:18px}
